@@ -398,15 +398,6 @@ function setupPWA() {
             try {
                 const registration = await navigator.serviceWorker.register('sw.js');
                 console.log('ServiceWorker registrado con éxito');
-                
-                // Verificar si ya está instalado
-                if (window.matchMedia('(display-mode: standalone)').matches) {
-                    console.log('La aplicación ya está instalada');
-                    const installBtn = document.getElementById('installBtn');
-                    const installBtnMobile = document.getElementById('installBtnMobile');
-                    if (installBtn) installBtn.style.display = 'none';
-                    if (installBtnMobile) installBtnMobile.style.display = 'none';
-                }
             } catch (error) {
                 console.log('Error al registrar el ServiceWorker:', error);
             }
@@ -424,19 +415,18 @@ function setupPWA() {
         if (installBtnMobile) installBtnMobile.style.display = show ? 'flex' : 'none';
     };
     
+    // Manejador para el evento beforeinstallprompt
     window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('beforeinstallprompt event fired');
         // Prevenir que el navegador muestre automáticamente el prompt
         e.preventDefault();
         // Guardar el evento para usarlo más tarde
         deferredPrompt = e;
         // Mostrar el botón de instalación
         updateInstallButton(true);
-        
-        // Para depuración
-        console.log('beforeinstallprompt event fired');
     });
     
-    // Verificar si la PWA ya está instalada
+    // Manejador para cuando la aplicación es instalada
     window.addEventListener('appinstalled', () => {
         console.log('Aplicación instalada con éxito');
         updateInstallButton(false);
@@ -450,8 +440,13 @@ function setupPWA() {
             return;
         }
         
-        // Ocultar el botón
-        updateInstallButton(false);
+        // Obtener referencias a los botones
+        const installBtn = document.getElementById('installBtn');
+        const installBtnMobile = document.getElementById('installBtnMobile');
+        
+        // Deshabilitar los botones temporalmente
+        if (installBtn) installBtn.disabled = true;
+        if (installBtnMobile) installBtnMobile.disabled = true;
         
         try {
             // Mostrar el prompt de instalación
@@ -465,18 +460,21 @@ function setupPWA() {
             // Limpiar el prompt guardado
             deferredPrompt = null;
             
-            // Verificar si se instaló correctamente
-            if (outcome === 'accepted') {
-                // Ocultar el botón después de la instalación exitosa
-                updateInstallButton(false);
-            } else {
-                // Volver a mostrar el botón después de un tiempo si el usuario lo rechazó
-                setTimeout(() => updateInstallButton(true), 5000);
+            // Ocultar los botones
+            updateInstallButton(false);
+            
+            // Si el usuario rechazó, volver a mostrar los botones después de un tiempo
+            if (outcome !== 'accepted') {
+                setTimeout(() => updateInstallButton(true), 10000); // 10 segundos
             }
         } catch (error) {
             console.error('Error al manejar la instalación:', error);
-            // Volver a mostrar el botón en caso de error
+            // Volver a mostrar los botones en caso de error
             updateInstallButton(true);
+        } finally {
+            // Re-habilitar los botones
+            if (installBtn) installBtn.disabled = false;
+            if (installBtnMobile) installBtnMobile.disabled = false;
         }
     };
     
