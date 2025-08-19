@@ -276,32 +276,36 @@ function createResultElement(article, query) {
     `;
     
     // Obtener referencias a los elementos
-    const expandButton = articleElement.querySelector('button:first-of-type');
+    const buttonsContainer = articleElement.querySelector('.flex.space-x-2');
+    const expandButton = buttonsContainer ? buttonsContainer.firstElementChild : null;
     const contentElement = articleElement.querySelector('.prose p');
     
-    // Guardar el contenido completo y la vista previa como propiedades del elemento
-    contentElement._fullContent = content;
-    contentElement._preview = previewContent;
-    contentElement._isExpanded = false;
-    
-    // Función para actualizar el contenido con resaltado
-    const updateContent = (full) => {
-        const displayContent = full ? content : previewContent;
-        contentElement.innerHTML = highlightText(displayContent);
-        expandButton.innerHTML = full 
-            ? '<i class="fas fa-compress-alt mr-1"></i> Contraer'
-            : '<i class="fas fa-expand-alt mr-1"></i> Ampliar';
-        contentElement._isExpanded = full;
-    };
+    if (contentElement && expandButton) {
+        // Guardar el contenido completo y la vista previa como propiedades del elemento
+        contentElement._fullContent = content;
+        contentElement._preview = previewContent;
+        contentElement._isExpanded = false;
+        
+        // Función para actualizar el contenido con resaltado
+        const updateContent = (full) => {
+            const displayContent = full ? content : previewContent;
+            contentElement.innerHTML = highlightText(displayContent);
+            expandButton.innerHTML = full 
+                ? '<i class="fas fa-compress-alt mr-1"></i> Contraer'
+                : '<i class="fas fa-expand-alt mr-1"></i> Ampliar';
+            contentElement._isExpanded = full;
+        };
 
-    // Configurar el evento de clic
-    expandButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        updateContent(!contentElement._isExpanded);
-    });
-    
-    // Configurar el contenido inicial
-    updateContent(false);
+        // Configurar el evento de clic
+        expandButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            updateContent(!contentElement._isExpanded);
+        });
+        
+        // Configurar el contenido inicial
+        updateContent(false);
+    }
     
     return articleElement;
 }
