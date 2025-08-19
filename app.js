@@ -279,29 +279,31 @@ function createResultElement(article, query) {
     const buttonsContainer = articleElement.querySelector('.flex.space-x-2');
     const expandButton = buttonsContainer ? buttonsContainer.firstElementChild : null;
     const contentElement = articleElement.querySelector('.prose p');
+    const articleContent = articleElement.querySelector('.prose');
     
-    if (contentElement && expandButton) {
-        // Guardar el contenido completo y la vista previa como propiedades del elemento
-        contentElement._fullContent = content;
-        contentElement._preview = previewContent;
-        contentElement._isExpanded = false;
+    if (contentElement && expandButton && articleContent) {
+        // Guardar el contenido completo y la vista previa
+        articleContent._fullContent = content;
+        articleContent._preview = previewContent;
+        articleContent._isExpanded = false;
         
         // Función para actualizar el contenido con resaltado
         const updateContent = (full) => {
-            const displayContent = full ? content : previewContent;
+            const displayContent = full ? articleContent._fullContent : articleContent._preview;
             contentElement.innerHTML = highlightText(displayContent);
             expandButton.innerHTML = full 
                 ? '<i class="fas fa-compress-alt mr-1"></i> Contraer'
                 : '<i class="fas fa-expand-alt mr-1"></i> Ampliar';
-            contentElement._isExpanded = full;
+            articleContent._isExpanded = full;
         };
 
         // Configurar el evento de clic
-        expandButton.addEventListener('click', (e) => {
+        expandButton.onclick = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            updateContent(!contentElement._isExpanded);
-        });
+            updateContent(!articleContent._isExpanded);
+            return false;
+        };
         
         // Configurar el contenido inicial
         updateContent(false);
