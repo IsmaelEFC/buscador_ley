@@ -9,42 +9,42 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "icons/icon-72x72.png",
+      "src": "https://via.placeholder.com/72x72/1e40af/ffffff?text=LT",
       "sizes": "72x72",
       "type": "image/png"
     },
     {
-      "src": "icons/icon-96x96.png",
+      "src": "https://via.placeholder.com/96x96/1e40af/ffffff?text=LT",
       "sizes": "96x96",
       "type": "image/png"
     },
     {
-      "src": "icons/icon-128x128.png",
+      "src": "https://via.placeholder.com/128x128/1e40af/ffffff?text=LT",
       "sizes": "128x128",
       "type": "image/png"
     },
     {
-      "src": "icons/icon-144x144.png",
+      "src": "https://via.placeholder.com/144x144/1e40af/ffffff?text=LT",
       "sizes": "144x144",
       "type": "image/png"
     },
     {
-      "src": "icons/icon-152x152.png",
+      "src": "https://via.placeholder.com/152x152/1e40af/ffffff?text=LT",
       "sizes": "152x152",
       "type": "image/png"
     },
     {
-      "src": "icons/icon-192x192.png",
+      "src": "https://via.placeholder.com/192x192/1e40af/ffffff?text=LT",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icons/icon-384x384.png",
+      "src": "https://via.placeholder.com/384x384/1e40af/ffffff?text=LT",
       "sizes": "384x384",
       "type": "image/png"
     },
     {
-      "src": "icons/icon-512x512.png",
+      "src": "https://via.placeholder.com/512x512/1e40af/ffffff?text=LT",
       "sizes": "512x512",
       "type": "image/png"
     }

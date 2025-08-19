@@ -6,7 +6,11 @@ const DATA_URL = 'ley_18290_articulos.ndjson';
 // Elementos del DOM
 const searchInput = document.getElementById('searchInput');
 const searchForm = document.querySelector('.search-container');
-const suggestionsContainer = document.getElementById('suggestions');
+const suggestionsContainer = document.getElementById('suggestions') || { 
+    classList: { add: () => {}, remove: () => {} },
+    innerHTML: '',
+    querySelectorAll: () => []
+};
 const resultsContainer = document.getElementById('resultsContainer');
 const initialState = document.getElementById('initialState');
 const loadingState = document.getElementById('loadingState');
@@ -271,23 +275,33 @@ function createResultElement(article, query) {
         </div>
     `;
     
-    // Agregar funcionalidad al botón de ampliar
+    // Obtener referencias a los elementos
     const expandButton = articleElement.querySelector('button:first-of-type');
     const contentElement = articleElement.querySelector('.prose p');
     
-    expandButton.addEventListener('click', () => {
-        if (contentElement.textContent.endsWith('...') || contentElement.getAttribute('data-expanded') !== 'true') {
-            // Expandir
-            contentElement.textContent = content;
-            contentElement.setAttribute('data-expanded', 'true');
-            expandButton.innerHTML = '<i class="fas fa-compress-alt mr-1"></i> Contraer';
-        } else {
-            // Contraer
-            contentElement.textContent = previewContent;
-            contentElement.setAttribute('data-expanded', 'false');
-            expandButton.innerHTML = '<i class="fas fa-expand-alt mr-1"></i> Ampliar';
-        }
+    // Guardar el contenido completo y la vista previa como propiedades del elemento
+    contentElement._fullContent = content;
+    contentElement._preview = previewContent;
+    contentElement._isExpanded = false;
+    
+    // Función para actualizar el contenido con resaltado
+    const updateContent = (full) => {
+        const displayContent = full ? content : previewContent;
+        contentElement.innerHTML = highlightText(displayContent);
+        expandButton.innerHTML = full 
+            ? '<i class="fas fa-compress-alt mr-1"></i> Contraer'
+            : '<i class="fas fa-expand-alt mr-1"></i> Ampliar';
+        contentElement._isExpanded = full;
+    };
+
+    // Configurar el evento de clic
+    expandButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        updateContent(!contentElement._isExpanded);
     });
+    
+    // Configurar el contenido inicial
+    updateContent(false);
     
     return articleElement;
 }
