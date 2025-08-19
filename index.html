@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador Ley de Tránsito</title>
+    <meta name="description" content="Buscador de la Ley de Tránsito Chilena">
+    <meta name="theme-color" content="#1e40af">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --secondary: #4b5563;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            background-color: #f3f4f6;
+        }
+        .search-container {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .search-input {
+            padding: 1rem 1.5rem 1rem 3.5rem;
+            border-radius: 2rem;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .search-input:focus {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .search-icon {
+            left: 1.25rem;
+            color: #6b7280;
+        }
+        .result-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-color: #d1d5db;
+        }
+        .highlight {
+            background-color: #dbeafe;
+            padding: 0.15em 0.25em;
+            border-radius: 0.25em;
+            font-weight: 600;
+            color: #1e40af;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .highlight:hover {
+            background-color: #bfdbfe;
+            transform: scale(1.02);
+        }
+        .no-results {
+            min-height: 50vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .loading-spinner {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-width: 0.25rem;
+        }
+        .install-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 50;
+            display: none;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-blue-800">Ley de Tránsito</h1>
+                <button id="installBtn" class="hidden md:flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-download mr-2"></i>
+                    Instalar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Search Section -->
+        <section class="mb-12">
+            <div class="search-container mx-auto">
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        class="search-input w-full border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none" 
+                        placeholder="Buscar en la ley de tránsito..." 
+                        autocomplete="off"
+                    >
+                    <i class="fas fa-search search-icon absolute top-1/2 transform -translate-y-1/2"></i>
+                </div>
+                <div id="suggestions" class="mt-2 hidden bg-white border border-gray-200 rounded-lg shadow-lg absolute w-full z-20">
+                    <!-- Las sugerencias se llenarán dinámicamente -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section id="resultsSection" class="max-w-4xl mx-auto">
+            <div id="initialState" class="text-center py-12">
+                <div class="inline-block p-4 bg-blue-100 rounded-full mb-4">
+                    <i class="fas fa-search text-blue-600 text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-800 mb-2">Busca en la Ley de Tránsito</h2>
+                <p class="text-gray-600">Escribe un término o frase para encontrar artículos relacionados</p>
+                
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-3xl mx-auto">
+                    <button class="suggestion-btn bg-white p-4 rounded-lg shadow text-left hover:shadow-md transition-shadow border border-gray-100">
+                        <h3 class="font-medium text-blue-700">Licencias de Conducir</h3>
+                        <p class="text-sm text-gray-500 mt-1">Requisitos y tipos de licencias</p>
+                    </button>
+                    <button class="suggestion-btn bg-white p-4 rounded-lg shadow text-left hover:shadow-md transition-shadow border border-gray-100">
+                        <h3 class="font-medium text-blue-700">Límites de Velocidad</h3>
+                        <p class="text-sm text-gray-500 mt-1">Restricciones en zonas urbanas y rurales</p>
+                    </button>
+                    <button class="suggestion-btn bg-white p-4 rounded-lg shadow text-left hover:shadow-md transition-shadow border border-gray-100">
+                        <h3 class="font-medium text-blue-700">Sanciones</h3>
+                        <p class="text-sm text-gray-500 mt-1">Multas y sanciones de tránsito</p>
+                    </button>
+                </div>
+            </div>
+
+            <div id="loadingState" class="hidden justify-center py-16">
+                <div class="loading-spinner border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>
+            </div>
+
+            <div id="noResults" class="hidden no-results text-center py-16">
+                <div class="max-w-md mx-auto">
+                    <i class="fas fa-search text-gray-300 text-5xl mb-4"></i>
+                    <h2 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron resultados</h2>
+                    <p class="text-gray-500">Intenta con otras palabras clave o revisa la ortografía</p>
+                </div>
+            </div>
+
+            <div id="resultsContainer" class="space-y-6">
+                <!-- Los resultados se insertarán aquí dinámicamente -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="container mx-auto px-4 py-6">
+            <div class="text-center text-gray-500 text-sm">
+                <p>© 2025 Buscador Ley de Tránsito - Información de referencia</p>
+                <p class="mt-2">Fuente: Ley N° 18.290 de Tránsito de Chile</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Install Button Mobile -->
+    <button id="installBtnMobile" class="install-btn md:hidden flex items-center justify-center w-14 h-14 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 transition-colors">
+        <i class="fas fa-download text-xl"></i>
+    </button>
+
+    <script src="app.js" type="module"></script>
+</body>
+</html>
