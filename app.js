@@ -262,10 +262,6 @@ function createResultElement(article, query) {
                     
                     <div class="flex space-x-2">
                         <button class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
-                            <i class="fas fa-expand-alt mr-1"></i>
-                            Ampliar
-                        </button>
-                        <button class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
                             <i class="fas fa-share-alt mr-1"></i>
                             Compartir
                         </button>
