@@ -1,13 +1,13 @@
 // Nombre de la caché
-const CACHE_NAME = 'buscador-ley-transito-v1';
+const CACHE_NAME = 'buscador-ley-transito-v1.1';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/app.js',
-  '/ley_18290_articulos.ndjson',
-  'https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
+  './',
+  './index.html',
+  './app.js',
+  './manifest.json',
+  './icons/icon-192x192.png',
+  './icons/icon-512x512.png',
+  './favicon.ico'
 ];
 
 // Instalación del Service Worker
@@ -16,38 +16,73 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Cache abierta');
-        return cache.addAll(ASSETS_TO_CACHE);
+        // Usamos Promise.all para manejar errores individuales
+        return Promise.all(
+          ASSETS_TO_CACHE.map(url => {
+            return fetch(url, { mode: 'no-cors' })
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
+                }
+                return cache.put(url, response);
+              })
+              .catch(err => {
+                console.warn(`Couldn't cache ${url}:`, err);
+              });
+          })
+        );
+      })
+      .catch(err => {
+        console.error('Error during service worker installation:', err);
       })
   );
+  // Activar el nuevo service worker inmediatamente
+  self.skipWaiting();
 });
 
 // Estrategia: Cache First, luego red
 self.addEventListener('fetch', (event) => {
+  // No cachear solicitudes de navegación que no sean GET
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
+  // Para solicitudes de navegación, usa index.html
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      caches.match('./index.html')
+        .then((cachedResponse) => {
+          return cachedResponse || fetch(event.request);
+        })
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
-      .then((response) => {
-        // Devuelve la respuesta de la caché si existe
-        if (response) {
-          return response;
+      .then((cachedResponse) => {
+        // Si la respuesta está en caché, devuélvela
+        if (cachedResponse) {
+          return cachedResponse;
         }
 
         // Si no está en caché, haz la petición a la red
         return fetch(event.request)
-          .then((response) => {
-            // No cachear respuestas que no sean exitosas
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
+          .then((networkResponse) => {
+            // Solo cachear respuestas exitosas y que sean de nuestro dominio
+            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+              return networkResponse;
             }
 
             // Clonar la respuesta para almacenarla en caché
-            const responseToCache = response.clone();
+            const responseToCache = networkResponse.clone();
 
             caches.open(CACHE_NAME)
               .then((cache) => {
                 cache.put(event.request, responseToCache);
               });
 
-            return response;
+            return networkResponse;
           });
       })
   );
@@ -61,11 +96,15 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
+          if (!cacheWhitelist.includes(cacheName)) {
+            console.log('Eliminando caché antigua:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     })
   );
+  
+  // Tomar el control de los clientes inmediatamente
+  event.waitUntil(clients.claim());
 });

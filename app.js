@@ -404,96 +404,21 @@ function setupPWA() {
         });
     }
     
-    // Manejar la instalación de la PWA
-    let deferredPrompt;
-    const installBtn = document.getElementById('installBtn');
-    const installBtnMobile = document.getElementById('installBtnMobile');
-    
-    // Mostrar u ocultar botones de instalación según corresponda
-    const updateInstallButton = (show) => {
-        if (installBtn) installBtn.style.display = show ? 'block' : 'none';
-        if (installBtnMobile) installBtnMobile.style.display = show ? 'flex' : 'none';
-    };
-    
-    // Manejador para el evento beforeinstallprompt
+    // Permitir que el navegador maneje automáticamente el prompt de instalación
     window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('beforeinstallprompt event fired');
-        // Prevenir que el navegador muestre automáticamente el prompt
-        e.preventDefault();
-        // Guardar el evento para usarlo más tarde
-        deferredPrompt = e;
-        // Mostrar el botón de instalación
-        updateInstallButton(true);
+        // No hacer nada, permitir que el navegador maneje el prompt
+        console.log('beforeinstallprompt event fired - Usando el comportamiento por defecto del navegador');
     });
     
-    // Manejador para cuando la aplicación es instalada
+    // Verificar si la PWA ya está instalada
     window.addEventListener('appinstalled', () => {
         console.log('Aplicación instalada con éxito');
-        updateInstallButton(false);
-        deferredPrompt = null;
     });
-    
-    // Configurar el botón de instalación
-    const handleInstallClick = async () => {
-        if (!deferredPrompt) {
-            console.log('No hay prompt de instalación disponible');
-            return;
-        }
-        
-        // Obtener referencias a los botones
-        const installBtn = document.getElementById('installBtn');
-        const installBtnMobile = document.getElementById('installBtnMobile');
-        
-        // Deshabilitar los botones temporalmente
-        if (installBtn) installBtn.disabled = true;
-        if (installBtnMobile) installBtnMobile.disabled = true;
-        
-        try {
-            // Mostrar el prompt de instalación
-            deferredPrompt.prompt();
-            console.log('Prompt de instalación mostrado');
-            
-            // Esperar a que el usuario responda al prompt
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`El usuario ${outcome === 'accepted' ? 'aceptó' : 'rechazó'} la instalación`);
-            
-            // Limpiar el prompt guardado
-            deferredPrompt = null;
-            
-            // Ocultar los botones
-            updateInstallButton(false);
-            
-            // Si el usuario rechazó, volver a mostrar los botones después de un tiempo
-            if (outcome !== 'accepted') {
-                setTimeout(() => updateInstallButton(true), 10000); // 10 segundos
-            }
-        } catch (error) {
-            console.error('Error al manejar la instalación:', error);
-            // Volver a mostrar los botones en caso de error
-            updateInstallButton(true);
-        } finally {
-            // Re-habilitar los botones
-            if (installBtn) installBtn.disabled = false;
-            if (installBtnMobile) installBtnMobile.disabled = false;
-        }
-    };
-    
-    // Agregar event listeners a los botones
-    if (installBtn) {
-        installBtn.addEventListener('click', handleInstallClick);
-        installBtn.style.display = 'none'; // Ocultar por defecto
-    }
-    
-    if (installBtnMobile) {
-        installBtnMobile.addEventListener('click', handleInstallClick);
-        installBtnMobile.style.display = 'none'; // Ocultar por defecto
-    }
     
     // Verificar si ya está instalado al cargar la página
     window.addEventListener('load', () => {
         if (window.matchMedia('(display-mode: standalone)').matches) {
             console.log('La aplicación ya está instalada');
-            updateInstallButton(false);
         }
     });
 }
